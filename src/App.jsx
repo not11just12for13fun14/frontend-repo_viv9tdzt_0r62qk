@@ -1,71 +1,78 @@
+import { useEffect, useState } from 'react'
+import Header from './components/Header'
+import Hero from './components/Hero'
+import Features from './components/Features'
+import Footer from './components/Footer'
+
 function App() {
+  const [invite, setInvite] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    const fetchInvite = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+        const res = await fetch(`${baseUrl}/api/discord/invite/ayodhya`)
+        if (!res.ok) throw new Error('Failed to fetch invite info')
+        const data = await res.json()
+        setInvite(data)
+      } catch (e) {
+        setError(e.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchInvite()
+  }, [])
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Subtle pattern overlay */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)]"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-blue-50">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.12),transparent_60%)]" />
 
-      <div className="relative min-h-screen flex items-center justify-center p-8">
-        <div className="max-w-2xl w-full">
-          {/* Header with Flames icon */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center mb-6">
-              <img
-                src="/flame-icon.svg"
-                alt="Flames"
-                className="w-24 h-24 drop-shadow-[0_0_25px_rgba(59,130,246,0.5)]"
-              />
-            </div>
+      <Header inviteData={invite} />
 
-            <h1 className="text-5xl font-bold text-white mb-4 tracking-tight">
-              Flames Blue
-            </h1>
-
-            <p className="text-xl text-blue-200 mb-6">
-              Build applications through conversation
-            </p>
+      <main className="relative">
+        {loading ? (
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <p className="text-blue-200">Loading server details...</p>
           </div>
-
-          {/* Instructions */}
-          <div className="bg-slate-800/50 backdrop-blur-sm border border-blue-500/20 rounded-2xl p-8 shadow-xl mb-6">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold">
-                1
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-1">Describe your idea</h3>
-                <p className="text-blue-200/80 text-sm">Use the chat panel on the left to tell the AI what you want to build</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 mb-6">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold">
-                2
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-1">Watch it build</h3>
-                <p className="text-blue-200/80 text-sm">Your app will appear in this preview as the AI generates the code</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold">
-                3
-              </div>
-              <div>
-                <h3 className="font-semibold text-white mb-1">Refine and iterate</h3>
-                <p className="text-blue-200/80 text-sm">Continue the conversation to add features and make changes</p>
-              </div>
+        ) : error ? (
+          <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="bg-white/5 border border-white/10 p-6 rounded-xl">
+              <p className="text-red-300">{error}</p>
+              <p className="text-blue-200/80 text-sm mt-2">We’ll still show the site, but live stats may be unavailable.</p>
             </div>
           </div>
+        ) : (
+          <>
+            <Hero inviteData={invite} />
+            <section id="about" className="py-20">
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid lg:grid-cols-3 gap-8 items-start">
+                  <div className="lg:col-span-2">
+                    <h2 className="text-3xl font-bold text-white mb-4">Welcome to Ayodhya</h2>
+                    <p className="text-blue-100/80 leading-relaxed">
+                      A vibrant corner of the internet to hang out, make friends, and vibe. Whether you’re into gaming, music, or just late-night conversations, there’s a spot for you here.
+                    </p>
+                  </div>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+                    <h3 className="text-white font-semibold mb-2">Live Stats</h3>
+                    <ul className="text-blue-100/90 text-sm space-y-1">
+                      <li><span className="text-white font-medium">Members:</span> {invite?.approximate_member_count?.toLocaleString?.() || '—'}</li>
+                      <li><span className="text-white font-medium">Online:</span> {invite?.approximate_presence_count?.toLocaleString?.() || '—'}</li>
+                      <li><span className="text-white font-medium">Invite:</span> {invite?.code || 'ayodhya'}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <Features />
+          </>
+        )}
+      </main>
 
-          {/* Footer */}
-          <div className="text-center">
-            <p className="text-sm text-blue-300/60">
-              No coding required • Just describe what you want
-            </p>
-          </div>
-        </div>
-      </div>
+      <Footer />
     </div>
   )
 }
